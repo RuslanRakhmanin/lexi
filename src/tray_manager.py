@@ -31,12 +31,33 @@ class TrayManager:
 
     def toggle_window_visibility(self, icon, item):
         if self.is_window_visible:
-            self.window.withdraw() # Hide the window
-            self.is_window_visible = False
+            self.hide_window()
         else:
-            self.window.deiconify() # Show the window
-            self.window.lift() # Bring window to front
-            self.is_window_visible = True
+            self.show_window()
+
+    def show_window(self):
+        """Show the main application window."""
+        if self.is_window_visible:
+            self.window.withdraw()  # Temporarily hide the window.
+            self.is_window_visible = False
+            self.window.after(200, self.show_window)  # Delay to ensure the window is hidden before showing it again.
+        
+        self.window.deiconify() # Show the window
+        self.window.lift() # Bring window to front
+        self.window.attributes('-topmost', True) # Bring window to front and give focus
+        self.window.focus_force() # Explicitly request focus
+
+        # self.window.attributes('-topmost', False) # Revert topmost attribute
+        # Schedule the reversion of topmost after a short delay (e.g., 100ms)
+        # This gives the window manager time to handle the focus before the state changes.
+        self.window.after(100, lambda: self.window.attributes('-topmost', 0))
+        
+        self.is_window_visible = True
+
+    def hide_window(self):
+        """Hide the main application window."""
+        self.window.withdraw() # Hide the window
+        self.is_window_visible = False
 
     def exit_application(self, icon, item):
         icon.stop()

@@ -4,6 +4,8 @@
 import tkinter as tk
 from tkinter import ttk
 from tray_manager import TrayManager # Import TrayManager
+from hotkey_manager import HotkeyListener # Import HotkeyListener
+import pyperclip # Import pyperclip for clipboard access
 
 class App(tk.Tk):
     """Main application class for the Lexi text assistant."""
@@ -12,6 +14,10 @@ class App(tk.Tk):
 
         self.tray_manager = TrayManager(self) # Create TrayManager instance
         self.tray_manager.create_icon() # Create the system tray icon
+
+        # Initialize and start the HotkeyListener
+        self.hotkey_listener = HotkeyListener(self._on_hotkey_triggered)
+        self.hotkey_listener.start()
 
         self.title("Lexi - Gemini-Powered Text Assistant")
         # self.geometry("500x600") # Optional: set a default size
@@ -68,6 +74,32 @@ class App(tk.Tk):
         self.copy_with_formatting_button = ttk.Button(action_button_frame, text="Copy with Formatting")
         self.copy_with_formatting_button.pack(side=tk.LEFT)
 
+
+    def _on_hotkey_triggered(self):
+        """Handles actions when the global hotkey is triggered."""
+        try:
+            # Read content from the clipboard
+            clipboard_content = pyperclip.paste()
+
+            # Handle edge cases: empty or non-text clipboard
+            if not clipboard_content or not isinstance(clipboard_content, str):
+                print("Hotkey triggered, but clipboard is empty or not text. Ignoring.")
+                return # Ignore silently as per spec
+
+            # Display the main window and bring it into focus
+            self.tray_manager.show_window()
+
+            # Populate the input widget with the captured text
+            self.input_widget.delete("1.0", tk.END)
+            self.input_widget.insert("1.0", clipboard_content)
+
+            # TODO: Trigger analysis (word vs. phrase) - This will be implemented later
+
+        except Exception as e:
+            print(f"Error handling hotkey trigger: {e}")
+            # Optionally display an error in the UI or log it
+
+
 if __name__ == "__main__":
     app = App()
 
@@ -79,3 +111,5 @@ if __name__ == "__main__":
 
     app.mainloop()
     app.tray_manager.stop_icon() # Ensure icon is stopped when mainloop exits
+    app.hotkey_listener.stop() # Ensure hotkey listener is stopped
+    app.hotkey_listener.join() # Wait for the hotkey listener thread to finish
