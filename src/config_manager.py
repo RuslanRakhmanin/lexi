@@ -25,6 +25,7 @@ def load_config(filepath):
     """
     if not os.path.exists(filepath):
         print(f"Configuration file not found: {filepath}. Using default configuration.")
+        save_config(filepath, DEFAULT_CONFIG)  # Save default config if file doesn't exist
         return DEFAULT_CONFIG
 
     try:

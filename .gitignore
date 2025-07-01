@@ -208,4 +208,5 @@ __marimo__/
 
 # Test files
 test/
+
 config/settings.json
