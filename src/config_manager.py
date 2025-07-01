@@ -1,8 +1,11 @@
+# pylint: disable=line-too-long
+
 import json
 import os
 
 DEFAULT_SETTINGS = {
     "api_key": "",
+    "llm_model": "gemini-2.5-flash",
     "source_language": "English",
     "target_language": "Ukrainian",
     "last_processing_option": "Translate",

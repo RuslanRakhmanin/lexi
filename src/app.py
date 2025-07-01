@@ -6,9 +6,11 @@ from tkinter import ttk
 from tray_manager import TrayManager # Import TrayManager
 from hotkey_manager import HotkeyListener # Import HotkeyListener
 import pyperclip # Import pyperclip for clipboard access
-# json import is no longer needed here as prompts loading is in config_manager
 from config_manager import load_config, save_config, load_prompts # Import config manager functions
 import os # Import os for path joining
+import asyncio
+import threading
+from gemini_client import get_llm_response # Import the LLM function
 
 class App(tk.Tk):
     """Main application class for the Lexi text assistant."""
@@ -140,27 +142,77 @@ class App(tk.Tk):
             else:
                 button.state(['!pressed']) # Remove the 'pressed' state from other buttons
 
-        # Implement the actual action based on prompt_def
-        print(f"Selected prompt: {prompt_def}")
+        # Get input text
+        input_text = self.input_widget.get("1.0", tk.END).strip()
+        if not input_text:
+            print("Input widget is empty. Aborting LLM call.")
+            return # Don't proceed if input is empty
 
-        # Show/hide custom prompt entry based on selection
+        # Determine the final prompt
         if prompt_def.get("label") == "Custom Prompt":
+            # Show custom prompt entry and get text from it
             self.custom_prompt_entry.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
-            # Populate the custom prompt entry with the default template
-            # Find the custom prompt definition to get the template
-            custom_prompt_template = ""
-            input_text = self.input_widget.get("1.0", tk.END).strip()
-            input_type = self._determine_input_type(input_text)
-            prompts = self.prompts_config.get(input_type, [])
-            for p in prompts:
-                if p.get("label") == "Custom Prompt":
-                    custom_prompt_template = p.get("prompt", "")
-                    break
-            self.custom_prompt_entry.delete(0, tk.END)
-            self.custom_prompt_entry.insert(0, custom_prompt_template)
+            # Populate the custom prompt entry with the default template if empty
+            if not self.custom_prompt_entry.get():
+                 # Find the custom prompt definition to get the template
+                custom_prompt_template = ""
+                input_type = self._determine_input_type(input_text)
+                prompts = self.prompts_config.get(input_type, [])
+                for p in prompts:
+                    if p.get("label") == "Custom Prompt":
+                        custom_prompt_template = p.get("prompt", "")
+                        break
+                self.custom_prompt_entry.delete(0, tk.END)
+                self.custom_prompt_entry.insert(0, custom_prompt_template)
+
+            from_language = self.source_lang_combo.get()
+            to_language = self.target_lang_combo.get()
+            final_prompt = self.custom_prompt_entry.get().replace("{text}", input_text).replace("{from_language}", from_language).replace("{to_language}", to_language)
             self.custom_prompt_entry.focus_set() # Set focus to the custom prompt entry
         else:
             self.custom_prompt_entry.grid_forget()
+            # Use the prompt template from prompts.json and replace the placeholder
+            prompt_template = prompt_def.get("prompt", "{text}")
+            from_language = self.source_lang_combo.get()
+            to_language = self.target_lang_combo.get()
+            final_prompt = prompt_template.replace("{text}", input_text).replace("{from_language}", from_language).replace("{to_language}", to_language)
+
+
+        print(f"Final prompt sent to LLM: {final_prompt}")
+
+        # Get API key and model name
+        api_key = self.config.get("api_key")
+        # TODO: Read available model names from Genimi API and use a current flash model
+        model_name = self.config.get("llm_model", "")
+
+        if not api_key:
+            print("API key is missing. Cannot call LLM.")
+            # Optionally show an error message in the UI
+            self._update_ui_after_llm("Error: API key is missing. Please go to settings.json to add it.")
+            return
+
+        # Disable UI while processing
+        self.toggle_main_widgets_state(tk.DISABLED)
+        self.output_widget.config(state=tk.NORMAL) # Enable output widget to clear/insert
+        self.output_widget.delete("1.0", tk.END)
+        self.output_widget.insert("1.0", "Processing...")
+        self.output_widget.config(state=tk.DISABLED) # Disable again
+
+        # Run the async LLM call in a separate thread
+        def run_llm_async():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                response = loop.run_until_complete(get_llm_response(api_key, model_name, final_prompt))
+                # Schedule UI update on the main thread
+                self.after(0, self._update_ui_after_llm, response)
+            except Exception as e:
+                self.after(0, self._update_ui_after_llm, f"An unexpected error occurred: {e}")
+            finally:
+                loop.close()
+
+        llm_thread = threading.Thread(target=run_llm_async)
+        llm_thread.start()
 
 
     def _on_hotkey_triggered(self):
@@ -186,6 +238,15 @@ class App(tk.Tk):
             input_type = self._determine_input_type(input_text)
             self._create_processing_buttons(input_type)
 
+            # Trigger the click event for the first button (the default one)
+            if self._prompt_buttons:
+                # Get the corresponding prompt definition
+                prompts = self.prompts_config.get(input_type, [])
+                if prompts:
+                    default_prompt_def = prompts[0]
+                    # Call the button click handler directly
+                    self._on_prompt_button_click(self._prompt_buttons[0], default_prompt_def)
+
 
         except tk.TclError as e:
             print(f"Error handling hotkey trigger (TclError): {e}")
@@ -194,6 +255,17 @@ class App(tk.Tk):
         # except Exception as e:
         #     # Log or handle unexpected exceptions
         #     print(f"Unexpected error handling hotkey trigger: {e}")
+
+    def _update_ui_after_llm(self, response_text):
+        """Updates the UI with the LLM response and re-enables widgets."""
+        self.output_widget.config(state=tk.NORMAL) # Enable output widget to clear/insert
+        self.output_widget.delete("1.0", tk.END)
+        self.output_widget.insert("1.0", response_text)
+        self.output_widget.config(state=tk.DISABLED) # Disable again
+
+        # Re-enable UI
+        self.toggle_main_widgets_state(tk.NORMAL)
+        print("LLM call finished. UI re-enabled.")
 
     def toggle_main_widgets_state(self, state):
         """Enables or disables the main application widgets."""
