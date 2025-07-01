@@ -1,0 +1,38 @@
+{
+  "word": [
+    {
+      "label": "Full Analysis",
+      "prompt": "Provide a comprehensive analysis for the word '{text}' in {from_language}. Include its definition, synonyms, antonyms, and three example sentences.",
+      "default": false
+    },
+    {
+      "label": "Translate",
+      "prompt": "Translate the word '{text}' from {from_language} to {to_language}.",
+      "default": true
+    },
+    {
+        "label": "Custom Prompt",
+        "prompt": "{custom_prompt}. The text to process is: '{text}'",
+        "default": false
+    }
+
+  ],
+  "phrase": [
+    {
+      "label": "Proofread",
+      "prompt": "Proofread and correct the following text, keeping the original meaning. Explain the corrections. The original text is in {from_language}. Use Markdown for your corrections: **new text** for additions and ~~old text~~ for deletions. Original text: '{text}'",
+      "default": false
+    },
+    {
+      "label": "Translate",
+      "prompt": "Translate the following text from {from_language} to {to_language}. Text: '{text}'",
+      "default": true
+    },
+    {
+        "label": "Custom Prompt",
+        "prompt": "{custom_prompt}. The text to process is: '{text}'",
+        "default": false
+    }
+
+  ]
+}

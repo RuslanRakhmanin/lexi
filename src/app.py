@@ -1,9 +1,17 @@
+# pylint: disable=line-too-long
+
+"""Main application for the Lexi text assistant with system tray integration."""
 import tkinter as tk
 from tkinter import ttk
+from tray_manager import TrayManager # Import TrayManager
 
 class App(tk.Tk):
+    """Main application class for the Lexi text assistant."""
     def __init__(self):
         super().__init__()
+
+        self.tray_manager = TrayManager(self) # Create TrayManager instance
+        self.tray_manager.create_icon() # Create the system tray icon
 
         self.title("Lexi - Gemini-Powered Text Assistant")
         # self.geometry("500x600") # Optional: set a default size
@@ -62,4 +70,12 @@ class App(tk.Tk):
 
 if __name__ == "__main__":
     app = App()
+
+    # Handle closing the window via the 'X' button and hiding to tray
+    def on_closing():
+        app.tray_manager.toggle_window_visibility(None, None) # Hide the window instead of destroying
+
+    app.protocol("WM_DELETE_WINDOW", on_closing)
+
     app.mainloop()
+    app.tray_manager.stop_icon() # Ensure icon is stopped when mainloop exits
