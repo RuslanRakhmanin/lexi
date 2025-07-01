@@ -95,9 +95,14 @@ class App(tk.Tk):
 
             # TODO: Trigger analysis (word vs. phrase) - This will be implemented later
 
-        except Exception as e:
-            print(f"Error handling hotkey trigger: {e}")
-            # Optionally display an error in the UI or log it
+        except tk.TclError as e:
+            print(f"Error handling hotkey trigger (TclError): {e}")
+        except pyperclip.PyperclipException as e:
+            print(f"Error handling hotkey trigger (PyperclipException): {e}")
+        # except Exception as e:
+        #     # Log or handle unexpected exceptions
+        #     print(f"Unexpected error handling hotkey trigger: {e}")
+
 
 
 if __name__ == "__main__":

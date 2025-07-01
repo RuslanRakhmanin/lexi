@@ -37,10 +37,15 @@ class TrayManager:
 
     def show_window(self):
         """Show the main application window."""
+
+        # TODO: The window doesn't get focus in case it was visible on the background.
+        # The trick with withdrawing and deiconifying the window does not work as expected.
+
         if self.is_window_visible:
             self.window.withdraw()  # Temporarily hide the window.
             self.is_window_visible = False
             self.window.after(200, self.show_window)  # Delay to ensure the window is hidden before showing it again.
+            return
         
         self.window.deiconify() # Show the window
         self.window.lift() # Bring window to front
