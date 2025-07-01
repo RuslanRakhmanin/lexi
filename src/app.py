@@ -6,11 +6,19 @@ from tkinter import ttk
 from tray_manager import TrayManager # Import TrayManager
 from hotkey_manager import HotkeyListener # Import HotkeyListener
 import pyperclip # Import pyperclip for clipboard access
+from config_manager import load_config, save_config # Import config manager functions
+import os # Import os for path joining
 
 class App(tk.Tk):
     """Main application class for the Lexi text assistant."""
     def __init__(self):
         super().__init__()
+
+        self.config_filepath = os.path.join("config", "settings.json")
+        self.config = load_config(self.config_filepath)
+
+        # Widgets that need to be disabled/enabled
+        self._main_widgets = []
 
         self.tray_manager = TrayManager(self) # Create TrayManager instance
         self.tray_manager.create_icon() # Create the system tray icon
@@ -23,21 +31,22 @@ class App(tk.Tk):
         # self.geometry("500x600") # Optional: set a default size
 
         # Main frame
-        main_frame = ttk.Frame(self, padding="10")
-        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.main_frame = ttk.Frame(self, padding="10")
+        self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
         # 1. Language Selectors
-        lang_frame = ttk.Frame(main_frame)
+        lang_frame = ttk.Frame(self.main_frame)
         lang_frame.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E))
-        
+
         from_label = ttk.Label(lang_frame, text="From:")
         from_label.pack(side=tk.LEFT, padx=(0, 5))
-        
+
         self.source_lang_combo = ttk.Combobox(lang_frame, values=["English", "Spanish", "French", "German", "Ukrainian", "Russian"], width=15)
         self.source_lang_combo.pack(side=tk.LEFT, padx=(0, 10))
         self.source_lang_combo.set("English")
+        self._main_widgets.append(self.source_lang_combo)
 
         to_label = ttk.Label(lang_frame, text="To:")
         to_label.pack(side=tk.LEFT, padx=(0, 5))
@@ -45,34 +54,43 @@ class App(tk.Tk):
         self.target_lang_combo = ttk.Combobox(lang_frame, values=["Ukrainian", "Russian", "English", "Spanish", "French", "German"], width=15)
         self.target_lang_combo.pack(side=tk.LEFT)
         self.target_lang_combo.set("Russian")
+        self._main_widgets.append(self.target_lang_combo)
 
         # 2. Input Widget
-        self.input_widget = tk.Text(main_frame, height=10, wrap=tk.WORD)
+        self.input_widget = tk.Text(self.main_frame, height=10, wrap=tk.WORD)
         self.input_widget.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        self._main_widgets.append(self.input_widget)
 
         # 3. Processing Options (Placeholder)
-        self.processing_options_frame = ttk.Frame(main_frame)
+        self.processing_options_frame = ttk.Frame(self.main_frame)
         self.processing_options_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 5))
         # Buttons will be added dynamically here later
+        self._main_widgets.append(self.processing_options_frame)
 
         # 4. Custom Prompt Input (Initially hidden)
-        self.custom_prompt_entry = ttk.Entry(main_frame)
+        self.custom_prompt_entry = ttk.Entry(self.main_frame)
         # self.custom_prompt_entry.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5) # Will be shown when needed
+        self._main_widgets.append(self.custom_prompt_entry)
 
         # 5. Output Widget
-        self.output_widget = tk.Text(main_frame, height=15, wrap=tk.WORD, state=tk.DISABLED)
+        self.output_widget = tk.Text(self.main_frame, height=15, wrap=tk.WORD, state=tk.DISABLED)
         self.output_widget.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
-        main_frame.rowconfigure(4, weight=1) # Allow output widget to expand
+        self.main_frame.rowconfigure(4, weight=1) # Allow output widget to expand
+        self._main_widgets.append(self.output_widget)
 
         # 6. Action Buttons
-        action_button_frame = ttk.Frame(main_frame)
+        action_button_frame = ttk.Frame(self.main_frame)
         action_button_frame.grid(row=5, column=0, columnspan=2, sticky=(tk.E,), pady=(10, 0))
+        self._main_widgets.append(action_button_frame) # Add the frame containing buttons
 
         self.copy_button = ttk.Button(action_button_frame, text="Copy")
         self.copy_button.pack(side=tk.LEFT, padx=5)
 
         self.copy_with_formatting_button = ttk.Button(action_button_frame, text="Copy with Formatting")
         self.copy_with_formatting_button.pack(side=tk.LEFT)
+
+        self.check_api_key() # Check API key on startup
+
 
 
     def _on_hotkey_triggered(self):
@@ -103,6 +121,61 @@ class App(tk.Tk):
         #     # Log or handle unexpected exceptions
         #     print(f"Unexpected error handling hotkey trigger: {e}")
 
+    def toggle_main_widgets_state(self, state):
+        """Enables or disables the main application widgets."""
+        for widget in self._main_widgets:
+            try:
+                widget.config(state=state)
+            except tk.TclError:
+                # Some widgets like Frames don't have a 'state' option
+                pass
+
+    def save_api_key(self, event=None):
+        """Saves the entered API key to settings.json and unlocks the UI."""
+        api_key = self.api_key_entry.get().strip()
+        if api_key:
+            self.config['api_key'] = api_key
+            save_config(self.config_filepath, self.config)
+            self.api_key_frame.destroy() # Hide the API key input
+            self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S)) # Show main frame
+            self.toggle_main_widgets_state(tk.NORMAL) # Unlock UI
+            print("API key saved and UI unlocked.")
+        else:
+            print("API key cannot be empty.")
+
+
+    def check_api_key(self):
+        """Checks if the API key is present and prompts the user if missing."""
+        api_key = self.config.get("api_key")
+
+        if not api_key:
+            print("API key missing. Prompting user.")
+            self.main_frame.grid_forget() # Hide main frame
+            self.toggle_main_widgets_state(tk.DISABLED) # Disable UI
+
+            # Create a frame for API key input
+            self.api_key_frame = ttk.Frame(self, padding="10")
+            self.api_key_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+            self.columnconfigure(0, weight=1)
+            self.rowconfigure(0, weight=1)
+
+            api_key_label = ttk.Label(self.api_key_frame, text="Please enter your Gemini API key:")
+            api_key_label.pack(pady=(0, 5))
+
+            self.api_key_entry = ttk.Entry(self.api_key_frame, width=50)
+            self.api_key_entry.pack(pady=(0, 10))
+            self.api_key_entry.focus_set() # Set focus to the entry field
+
+            # Bind the Enter key to save the API key
+            self.api_key_entry.bind("<Return>", self.save_api_key)
+
+            # Optional: Add a save button
+            save_button = ttk.Button(self.api_key_frame, text="Save Key", command=self.save_api_key)
+            save_button.pack()
+
+        else:
+            print("API key found. UI is unlocked.")
+            # UI is already unlocked by default, nothing to do here
 
 
 if __name__ == "__main__":
