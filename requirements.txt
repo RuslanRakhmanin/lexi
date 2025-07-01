@@ -1,6 +1,5 @@
 pynput
 pystray
-google-generativeai
 google-genai
 python-markdown
 pyperclip
