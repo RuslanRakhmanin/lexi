@@ -6,7 +6,8 @@ from tkinter import ttk
 from tray_manager import TrayManager # Import TrayManager
 from hotkey_manager import HotkeyListener # Import HotkeyListener
 import pyperclip # Import pyperclip for clipboard access
-from config_manager import load_config, save_config # Import config manager functions
+# json import is no longer needed here as prompts loading is in config_manager
+from config_manager import load_config, save_config, load_prompts # Import config manager functions
 import os # Import os for path joining
 
 class App(tk.Tk):
@@ -15,7 +16,16 @@ class App(tk.Tk):
         super().__init__()
 
         self.config_filepath = os.path.join("config", "settings.json")
-        self.config = load_config(self.config_filepath)
+        try:
+            self.config = load_config(self.config_filepath)
+        except ValueError as e:
+            print(f"Fatal Error loading settings.json: {e}")
+            print("Application will exit.")
+            self.destroy() # Exit the application
+            return # Stop initialization
+
+        self.prompts_filepath = os.path.join("config", "prompts.json")
+        self.prompts_config = load_prompts(self.prompts_filepath) # Load prompts using the new function
 
         # Widgets that need to be disabled/enabled
         self._main_widgets = []
@@ -66,6 +76,7 @@ class App(tk.Tk):
         self.processing_options_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 5))
         # Buttons will be added dynamically here later
         self._main_widgets.append(self.processing_options_frame)
+        self._create_processing_buttons("phrase") # Start with phrase as a default
 
         # 4. Custom Prompt Input (Initially hidden)
         self.custom_prompt_entry = ttk.Entry(self.main_frame)
@@ -91,6 +102,65 @@ class App(tk.Tk):
 
         self.check_api_key() # Check API key on startup
 
+    def _determine_input_type(self, text):
+        """Determines if the input text is a 'word' or 'phrase'."""
+        return "word" if len(text.strip().split()) == 1 else "phrase"
+
+    def _create_processing_buttons(self, input_type):
+        """Creates buttons on the processing_options_frame based on input type."""
+        # Clear existing buttons
+        for widget in self.processing_options_frame.winfo_children():
+            widget.destroy()
+
+        prompts = self.prompts_config.get(input_type, []) # Get prompts for the type, default to empty list
+
+        self._prompt_buttons = [] # Store references to prompt buttons
+
+        for prompt_def in prompts:
+            label = prompt_def.get("label", "Unknown Prompt")
+            # Correctly capture button and prompt_def in the lambda and apply the custom style
+            button = ttk.Button(self.processing_options_frame, text=label, style="Prompt.TButton")
+            button.config(command=lambda b=button, p=prompt_def: self._on_prompt_button_click(b, p))
+            button.pack(side=tk.LEFT, padx=2)
+            self._prompt_buttons.append(button) # Add button to the list
+
+        # Set the first button as initially pressed by adding the 'pressed' state
+        if self._prompt_buttons:
+            self._prompt_buttons[0].state(['pressed'])
+
+
+    def _on_prompt_button_click(self, clicked_button, prompt_def):
+        """Handles a prompt button click, updates visual state, and triggers action."""
+        print(f"Prompt button clicked: {prompt_def.get('label')}")
+
+        # Update visual state of buttons using states
+        for button in self._prompt_buttons:
+            if button == clicked_button:
+                button.state(['pressed']) # Set the clicked button to the 'pressed' state
+            else:
+                button.state(['!pressed']) # Remove the 'pressed' state from other buttons
+
+        # Implement the actual action based on prompt_def
+        print(f"Selected prompt: {prompt_def}")
+
+        # Show/hide custom prompt entry based on selection
+        if prompt_def.get("label") == "Custom Prompt":
+            self.custom_prompt_entry.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
+            # Populate the custom prompt entry with the default template
+            # Find the custom prompt definition to get the template
+            custom_prompt_template = ""
+            input_text = self.input_widget.get("1.0", tk.END).strip()
+            input_type = self._determine_input_type(input_text)
+            prompts = self.prompts_config.get(input_type, [])
+            for p in prompts:
+                if p.get("label") == "Custom Prompt":
+                    custom_prompt_template = p.get("prompt", "")
+                    break
+            self.custom_prompt_entry.delete(0, tk.END)
+            self.custom_prompt_entry.insert(0, custom_prompt_template)
+            self.custom_prompt_entry.focus_set() # Set focus to the custom prompt entry
+        else:
+            self.custom_prompt_entry.grid_forget()
 
 
     def _on_hotkey_triggered(self):
@@ -111,7 +181,11 @@ class App(tk.Tk):
             self.input_widget.delete("1.0", tk.END)
             self.input_widget.insert("1.0", clipboard_content)
 
-            # TODO: Trigger analysis (word vs. phrase) - This will be implemented later
+            # Determine input type and create processing buttons
+            input_text = self.input_widget.get("1.0", tk.END).strip()
+            input_type = self._determine_input_type(input_text)
+            self._create_processing_buttons(input_type)
+
 
         except tk.TclError as e:
             print(f"Error handling hotkey trigger (TclError): {e}")

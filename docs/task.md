@@ -140,7 +140,7 @@ The UI must provide clear feedback to the user during API interactions.
 
 * The application must handle potential issues with its configuration files gracefully.
 * If `prompts.json` is missing, contains invalid JSON, or is otherwise unparseable on startup, the application must display a clear, user-friendly error message detailing the problem and then use default values given in the 3.1 section.
-* If `settings.json` is missing, contains invalid JSON, or is otherwise unparseable on startup, the application must display a clear, user-friendly error message detailing the problem and then exit. It should not attempt to run in a broken state.
+* If `settings.json` is missing, contains invalid JSON, or is otherwise unparseable on startup, the application must display a clear, user-friendly error message detailing the problem and use default values given in the 3.1 section.
 
 ---
 
