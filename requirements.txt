@@ -1,0 +1,4 @@
+pynput
+pystray
+google-generativeai
+python-markdown
