@@ -154,8 +154,8 @@ class App(tk.Tk):
             # If the saved option is not found among the current buttons,
             # ensure the first button is still pressed as a fallback.
             if not found_button and self._prompt_buttons:
-                 self._prompt_buttons[0].state(['pressed'])
-                 print("Saved processing option not found. Defaulting to first option.")
+                self._prompt_buttons[0].state(['pressed'])
+                print("Saved processing option not found. Defaulting to first option.")
 
 
         # 4. Custom Prompt Input (Initially hidden)
@@ -264,7 +264,6 @@ class App(tk.Tk):
 
         # Get API key and model name
         api_key = self.config.get("api_key")
-        # TODO: Read available model names from Genimi API and use a current flash model
         model_name = self.config.get("llm_model", "")
 
         if not api_key:
@@ -432,10 +431,10 @@ class App(tk.Tk):
             else:
                  # If no button is pressed (e.g., on initial startup before any button is clicked)
                  # try to get the default from the first button if available
-                 if getattr(self, '_prompt_buttons', []):
-                     last_processing_option = self._prompt_buttons[0].cget('text')
-                     self.config['last_processing_option'] = last_processing_option
-                     print(f"Saved default processing option: {last_processing_option}")
+                if getattr(self, '_prompt_buttons', []):
+                    last_processing_option = self._prompt_buttons[0].cget('text')
+                    self.config['last_processing_option'] = last_processing_option
+                    print(f"Saved default processing option: {last_processing_option}")
 
 
             # Save the updated config
