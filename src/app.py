@@ -34,14 +34,14 @@ class App(tk.Tk):
         self.ui_manager = UIManager(self, prompts_config, "") # CSS content loaded later by AppLogic
 
         # Initialize AppLogic
-        self.app_logic = AppLogic(self.ui_manager, self.state_manager)
+        self.tray_manager = TrayManager(self)
+        self.app_logic = AppLogic(self.ui_manager, self.state_manager, self.tray_manager)
         self.app_logic.load_css(css_filepath) # Load CSS via AppLogic
 
         # Initialize ApiKeyManager
         self.api_key_manager = ApiKeyManager(self, self.state_manager, self.ui_manager)
 
         # Initialize TrayManager and HotkeyListener
-        self.tray_manager = TrayManager(self)
         self.tray_manager.create_icon()
         self.hotkey_listener = HotkeyListener(self.app_logic._on_hotkey_triggered) # Pass AppLogic method
         self.hotkey_listener.start()

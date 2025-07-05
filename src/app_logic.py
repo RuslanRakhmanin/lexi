@@ -11,7 +11,7 @@ from clipboard_manager import ClipboardManager # Import the new ClipboardManager
 class AppLogic:
     """Contains the core application logic for Lexi."""
 
-    def __init__(self, ui_manager, state_manager):
+    def __init__(self, ui_manager, state_manager, tray_manager):
         """
         Initializes the AppLogic.
 
@@ -21,6 +21,7 @@ class AppLogic:
         """
         self.ui_manager = ui_manager
         self.state_manager = state_manager
+        self.tray_manager = tray_manager
         self.css_content = "" # Will be loaded from state_manager
         self._last_raw_llm_response = "" # Store the raw LLM response (Markdown)
         self._last_rendered_html = "" # Store the last rendered HTML output
@@ -139,7 +140,7 @@ class AppLogic:
                 return # Ignore silently as per spec
 
             # Display the main window and bring it into focus via TrayManager (handled in App)
-            # self.tray_manager.show_window()
+            self.tray_manager.show_window()
 
             # Populate the input widget with the captured text via UI manager
             self.ui_manager.set_input_text(clipboard_content)
