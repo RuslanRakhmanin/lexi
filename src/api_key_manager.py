@@ -1,7 +1,5 @@
+# pylint: disable=line-too-long
 import tkinter as tk
-from tkinter import ttk
-import os
-from state_manager import StateManager # Import StateManager
 
 class ApiKeyManager:
     """Manages the API key checking and input process."""

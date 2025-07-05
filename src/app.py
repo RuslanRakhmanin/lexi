@@ -70,8 +70,8 @@ class App(tk.Tk):
         # Restore last selected processing option in UI
         last_processing_option = config.get("last_processing_option")
         if last_processing_option:
-             self.ui_manager.set_prompt_button_pressed_state(last_processing_option)
-             print(f"Restored last processing option: {last_processing_option}")
+            self.ui_manager.set_prompt_button_pressed_state(last_processing_option)
+            print(f"Restored last processing option: {last_processing_option}")
 
 
         # Check API key on startup

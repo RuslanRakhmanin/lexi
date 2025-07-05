@@ -1,9 +1,11 @@
+# pylint: disable=line-too-long
+
 import asyncio
 import threading
+import tkinter as tk # Import tkinter for state constants
 import pyperclip # Import pyperclip for clipboard access
 from gemini_client import get_llm_response # Import the LLM function
 from markdown_renderer import render_markdown_to_html # Import the markdown renderer
-import tkinter as tk # Import tkinter for state constants
 
 class AppLogic:
     """Contains the core application logic for Lexi."""
@@ -147,11 +149,11 @@ class AppLogic:
             # It might be better to trigger the logic directly rather than simulating a button click
             if getattr(self.ui_manager, '_prompt_buttons', []):
                  # Get the corresponding prompt definition
-                 prompts = self.state_manager.get_prompts_config().get(input_type, [])
-                 if prompts:
-                     default_prompt_def = prompts[0]
-                     # Call the button click handler directly with the first button and its definition
-                     self._on_prompt_button_click(self.ui_manager._prompt_buttons[0], default_prompt_def)
+                prompts = self.state_manager.get_prompts_config().get(input_type, [])
+                if prompts:
+                    default_prompt_def = prompts[0]
+                    # Call the button click handler directly with the first button and its definition
+                    self._on_prompt_button_click(self.ui_manager._prompt_buttons[0], default_prompt_def)
 
 
         except pyperclip.PyperclipException as e:

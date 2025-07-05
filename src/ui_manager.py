@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long
+
 import tkinter as tk
 from tkinter import ttk
 import tkinterweb
@@ -206,9 +208,9 @@ class UIManager:
         self.custom_prompt_entry.insert(0, text)
 
     def show_custom_prompt_entry(self):
-         """Shows the custom prompt entry."""
-         self.custom_prompt_entry.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
-         self.custom_prompt_entry.focus_set() # Set focus to the custom prompt entry
+        """Shows the custom prompt entry."""
+        self.custom_prompt_entry.grid(row=3, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=5)
+        self.custom_prompt_entry.focus_set() # Set focus to the custom prompt entry
 
     def hide_custom_prompt_entry(self):
         """Hides the custom prompt entry."""

@@ -1,4 +1,5 @@
-import os
+# pylint: disable=line-too-long
+
 from config_manager import load_config, save_config, load_prompts # Import config manager functions
 
 class StateManager:
@@ -54,10 +55,10 @@ class StateManager:
                 self.config['last_processing_option'] = last_processing_option
                 print(f"Saved last processing option: {last_processing_option}")
             else:
-                 # If no button is pressed (e.g., on initial startup before any button is clicked)
-                 # try to get the default from the first button if available
-                 # This logic might need refinement depending on UI initialization
-                 pass # Or handle default saving in UIManager or AppLogic
+                # If no button is pressed (e.g., on initial startup before any button is clicked)
+                # try to get the default from the first button if available
+                # This logic might need refinement depending on UI initialization
+                pass # Or handle default saving in UIManager or AppLogic
 
             # Save the updated config
             save_config(self.config_filepath, self.config)
