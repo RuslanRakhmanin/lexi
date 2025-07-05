@@ -46,6 +46,9 @@ class App(tk.Tk):
         self.hotkey_listener = HotkeyListener(self.app_logic._on_hotkey_triggered) # Pass AppLogic method
         self.hotkey_listener.start()
 
+        # Bind Escape key to hide window
+        self.ui_manager.bind_escape_key(self._on_escape_pressed)
+
         self.title("Lexi - Gemini-Powered Text Assistant")
 
         # Restore window geometry if available in config
@@ -77,6 +80,10 @@ class App(tk.Tk):
         # Check API key on startup
         self.api_key_manager.check_api_key()
 
+    def _on_escape_pressed(self):
+        """Hides the application window when the Escape key is pressed."""
+        print("Escape key pressed. Hiding window.")
+        self.tray_manager.toggle_window_visibility(None, None) # Hide the window
 
 if __name__ == "__main__":
     app = App()

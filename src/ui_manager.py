@@ -257,7 +257,7 @@ class UIManager:
         # Create a proxy to manage the <<Modified>> event flag
         self._input_widget_modified_proxy = self.input_widget.bind("<<Modified>>", lambda e: self._input_widget_modified(callback))
         # Reset the flag initially
-        self.input_widget.edit_reset()
+        self.input_widget.edit_modified(False)
 
     def _input_widget_modified(self, callback):
         """Internal handler for the <<Modified>> event."""
@@ -268,3 +268,7 @@ class UIManager:
             # Reset the modified flag
             # self.input_widget.edit_reset()
             self.input_widget.edit_modified(False)
+
+    def bind_escape_key(self, callback):
+        """Binds a callback function to the Escape key press event on the root window."""
+        self.root.bind('<Escape>', lambda event: callback())
