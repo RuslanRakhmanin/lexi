@@ -3,3 +3,5 @@ pystray
 google-genai
 python-markdown
 pyperclip
+tkinterweb
+markdown

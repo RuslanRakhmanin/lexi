@@ -63,7 +63,7 @@ The UI must provide clear feedback to the user during API interactions.
 
 * **Idle State:** The application is ready for input. All widgets are active.
 * **Loading State:** When an API request is sent, the `Input Widget` and `Action Buttons` must be disabled. The `Output Widget` should display a clear status message (e.g., "Thinking...").
-* **Error State**: If an API call fails, the `Output Widget` must display a user-friendly and specific error message. The error text should be visually distinct (e.g., colored red). Examples include:
+* **Error State**: If an API call fails, the `Output Widget` must display a user-friendly and specific error message. The error text should be visually distinct (e.g., coloured red). Examples include:
 "Error: Invalid API Key. Please verify your key and try again."
 "Error: API quota exceeded. Please try again later."
 "Error: Network connection failed. Please check your internet connection."

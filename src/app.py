@@ -1,16 +1,18 @@
 # pylint: disable=line-too-long
 
 """Main application for the Lexi text assistant with system tray integration."""
-import tkinter as tk
-from tkinter import ttk
-from tray_manager import TrayManager # Import TrayManager
-from hotkey_manager import HotkeyListener # Import HotkeyListener
-import pyperclip # Import pyperclip for clipboard access
-from config_manager import load_config, save_config, load_prompts # Import config manager functions
 import os # Import os for path joining
 import asyncio
 import threading
+import tkinter as tk
+from tkinter import ttk
+from hotkey_manager import HotkeyListener # Import HotkeyListener
+import pyperclip # Import pyperclip for clipboard access
+from config_manager import load_config, save_config, load_prompts # Import config manager functions
 from gemini_client import get_llm_response # Import the LLM function
+import tkinterweb # Import tkinterweb
+from markdown_renderer import render_markdown_to_html # Import the markdown renderer
+from tray_manager import TrayManager # Import TrayManager
 
 class App(tk.Tk):
     """Main application class for the Lexi text assistant."""
@@ -28,6 +30,17 @@ class App(tk.Tk):
 
         self.prompts_filepath = os.path.join("config", "prompts.json")
         self.prompts_config = load_prompts(self.prompts_filepath) # Load prompts using the new function
+
+        # Load CSS content once at startup
+        self.css_content = ""
+        css_filepath = os.path.join("config", "styles.css")
+        try:
+            with open(css_filepath, "r", encoding="utf-8") as f:
+                self.css_content = f.read()
+        except FileNotFoundError:
+            print(f"Error: {css_filepath} not found.")
+        except Exception as e:
+            print(f"Error reading {css_filepath}: {e}")
 
         # Widgets that need to be disabled/enabled
         self._main_widgets = []
@@ -86,10 +99,13 @@ class App(tk.Tk):
         self._main_widgets.append(self.custom_prompt_entry)
 
         # 5. Output Widget
-        self.output_widget = tk.Text(self.main_frame, height=15, wrap=tk.WORD, state=tk.DISABLED)
+        # Use tkinterweb.HtmlFrame for Markdown rendering
+        self.output_widget = tkinterweb.HtmlFrame(self.main_frame, height=15)
         self.output_widget.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
         self.main_frame.rowconfigure(4, weight=1) # Allow output widget to expand
-        self._main_widgets.append(self.output_widget)
+        # Note: HtmlFrame does not have a 'state' option like tk.Text,
+        # so we won't add it to _main_widgets for state toggling.
+        # We will manage its content directly.
 
         # 6. Action Buttons
         action_button_frame = ttk.Frame(self.main_frame)
@@ -193,10 +209,9 @@ class App(tk.Tk):
 
         # Disable UI while processing
         self.toggle_main_widgets_state(tk.DISABLED)
-        self.output_widget.config(state=tk.NORMAL) # Enable output widget to clear/insert
-        self.output_widget.delete("1.0", tk.END)
-        self.output_widget.insert("1.0", "Processing...")
-        self.output_widget.config(state=tk.DISABLED) # Disable again
+        # Use load_html to display "Processing..." as HtmlFrame doesn't have insert/delete
+        self.output_widget.load_html("<p>Processing...</p>")
+        # HtmlFrame doesn't have a 'state' option, so we don't need to toggle it here.
 
         # Run the async LLM call in a separate thread
         def run_llm_async():
@@ -257,11 +272,15 @@ class App(tk.Tk):
         #     print(f"Unexpected error handling hotkey trigger: {e}")
 
     def _update_ui_after_llm(self, response_text):
-        """Updates the UI with the LLM response and re-enables widgets."""
-        self.output_widget.config(state=tk.NORMAL) # Enable output widget to clear/insert
-        self.output_widget.delete("1.0", tk.END)
-        self.output_widget.insert("1.0", response_text)
-        self.output_widget.config(state=tk.DISABLED) # Disable again
+        """Updates the UI with the LLM response (rendered Markdown) and re-enables widgets."""
+        # Use the CSS content loaded at startup
+        css_content = self.css_content
+
+        # Render Markdown to HTML
+        html_content = render_markdown_to_html(response_text, css_content)
+
+        # Update the HtmlFrame widget
+        self.output_widget.load_html(html_content)
 
         # Re-enable UI
         self.toggle_main_widgets_state(tk.NORMAL)
