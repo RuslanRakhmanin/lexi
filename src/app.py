@@ -28,6 +28,21 @@ class App(tk.Tk):
             self.destroy() # Exit the application
             return # Stop initialization
 
+        # Restore window geometry if available in config
+        window_geometry = self.config.get("window_geometry")
+        if window_geometry:
+            try:
+                self.geometry(window_geometry)
+                print(f"Restored window geometry: {window_geometry}")
+            except tk.TclError as e:
+                print(f"Error restoring window geometry '{window_geometry}': {e}")
+                # Optionally set a default size if restoration fails
+                # self.geometry("800x600")
+
+        # Restore selected languages if available in config
+        source_language = self.config.get("source_language")
+        target_language = self.config.get("target_language")
+
         self.prompts_filepath = os.path.join("config", "prompts.json")
         self.prompts_config = load_prompts(self.prompts_filepath) # Load prompts using the new function
 
@@ -61,6 +76,17 @@ class App(tk.Tk):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
+        # Configure columns and rows within main_frame for responsiveness
+        self.main_frame.columnconfigure(0, weight=1)
+        self.main_frame.columnconfigure(1, weight=1)
+        self.main_frame.rowconfigure(0, weight=0) # Language selectors row
+        self.main_frame.rowconfigure(1, weight=0) # Input widget row - make this resizable
+        self.main_frame.rowconfigure(2, weight=0) # Separator row
+        self.main_frame.rowconfigure(3, weight=0) # Custom prompt entry / Sizegrip row
+        self.main_frame.rowconfigure(4, weight=0) # Processing options row
+        self.main_frame.rowconfigure(5, weight=1) # Output widget row - make this resizable
+        self.main_frame.rowconfigure(6, weight=0) # Action buttons row
+
         # 1. Language Selectors
         lang_frame = ttk.Frame(self.main_frame)
         lang_frame.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E))
@@ -70,7 +96,11 @@ class App(tk.Tk):
 
         self.source_lang_combo = ttk.Combobox(lang_frame, values=["English", "Spanish", "French", "German", "Ukrainian", "Russian"], width=15)
         self.source_lang_combo.pack(side=tk.LEFT, padx=(0, 10))
-        self.source_lang_combo.set("English")
+        # Set initial value from config or default
+        if source_language and source_language in self.source_lang_combo['values']:
+            self.source_lang_combo.set(source_language)
+        else:
+            self.source_lang_combo.set("English")
         self._main_widgets.append(self.source_lang_combo)
 
         to_label = ttk.Label(lang_frame, text="To:")
@@ -78,20 +108,55 @@ class App(tk.Tk):
 
         self.target_lang_combo = ttk.Combobox(lang_frame, values=["Ukrainian", "Russian", "English", "Spanish", "French", "German"], width=15)
         self.target_lang_combo.pack(side=tk.LEFT)
-        self.target_lang_combo.set("Russian")
+        # Set initial value from config or default
+        if target_language and target_language in self.target_lang_combo['values']:
+            self.target_lang_combo.set(target_language)
+        else:
+            self.target_lang_combo.set("Ukrainian")
         self._main_widgets.append(self.target_lang_combo)
 
         # 2. Input Widget
-        self.input_widget = tk.Text(self.main_frame, height=10, wrap=tk.WORD)
-        self.input_widget.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=10)
+        self.input_widget = tk.Text(self.main_frame, height=5, wrap=tk.WORD)
+        self.input_widget.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
         self._main_widgets.append(self.input_widget)
 
-        # 3. Processing Options (Placeholder)
+        # # Add a Separator below the input widget
+        # self.input_output_separator = ttk.Separator(self.main_frame, orient=tk.HORIZONTAL)
+        # self.input_output_separator.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E))
+
+        # # Add a Sizegrip for resizing
+        # self.sizegrip = ttk.Sizegrip(self.main_frame)
+        # # Place the sizegrip in the bottom-right corner of the resizable area
+        # self.sizegrip.grid(row=3, column=1, sticky=(tk.S, tk.E)) # Placed in row 3, column 1
+
+        # 3. Processing Options (Placeholder) - This is now in row 4
         self.processing_options_frame = ttk.Frame(self.main_frame)
-        self.processing_options_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 5))
+        self.processing_options_frame.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 5))
         # Buttons will be added dynamically here later
         self._main_widgets.append(self.processing_options_frame)
-        self._create_processing_buttons("phrase") # Start with phrase as a default
+
+        # Determine initial input type based on potential saved input or default
+        initial_input_text = self.input_widget.get("1.0", tk.END).strip() # Get initial text (might be empty)
+        initial_input_type = self._determine_input_type(initial_input_text) if initial_input_text else "phrase" # Default to "phrase" if no text
+
+        self._create_processing_buttons(initial_input_type) # Create buttons based on initial input type
+
+        # Restore last selected processing option if available in config
+        last_processing_option = self.config.get("last_processing_option")
+        if last_processing_option and getattr(self, '_prompt_buttons', []):
+            found_button = False
+            for button in self._prompt_buttons:
+                if button.cget('text') == last_processing_option:
+                    button.state(['pressed'])
+                    found_button = True
+                    print(f"Restored last processing option: {last_processing_option}")
+                    break
+            # If the saved option is not found among the current buttons,
+            # ensure the first button is still pressed as a fallback.
+            if not found_button and self._prompt_buttons:
+                 self._prompt_buttons[0].state(['pressed'])
+                 print("Saved processing option not found. Defaulting to first option.")
+
 
         # 4. Custom Prompt Input (Initially hidden)
         self.custom_prompt_entry = ttk.Entry(self.main_frame)
@@ -99,17 +164,18 @@ class App(tk.Tk):
         self._main_widgets.append(self.custom_prompt_entry)
 
         # 5. Output Widget
+        # 5. Output Widget - This is now in row 5
         # Use tkinterweb.HtmlFrame for Markdown rendering
-        self.output_widget = tkinterweb.HtmlFrame(self.main_frame, height=15)
-        self.output_widget.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
-        self.main_frame.rowconfigure(4, weight=1) # Allow output widget to expand
+        self.output_widget = tkinterweb.HtmlFrame(self.main_frame, height=10)
+        self.output_widget.grid(row=5, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
+        # The rowconfigure for row 5 is moved up to the main_frame configuration section
         # Note: HtmlFrame does not have a 'state' option like tk.Text,
         # so we won't add it to _main_widgets for state toggling.
         # We will manage its content directly.
 
-        # 6. Action Buttons
+        # 6. Action Buttons - This is now in row 6
         action_button_frame = ttk.Frame(self.main_frame)
-        action_button_frame.grid(row=5, column=0, columnspan=2, sticky=(tk.E,), pady=(10, 0))
+        action_button_frame.grid(row=6, column=0, columnspan=2, sticky=(tk.E, tk.W), pady=(10, 0))
         self._main_widgets.append(action_button_frame) # Add the frame containing buttons
 
         self.copy_button = ttk.Button(action_button_frame, text="Copy")
@@ -343,6 +409,43 @@ class App(tk.Tk):
             # UI is already unlocked by default, nothing to do here
 
 
+    def save_window_state(self):
+        """Saves the current window state (geometry, languages, processing option) to settings.json."""
+        try:
+            # Save window geometry
+            current_geometry = self.geometry()
+            self.config['window_geometry'] = current_geometry
+
+            # Save selected languages
+            self.config['source_language'] = self.source_lang_combo.get()
+            self.config['target_language'] = self.target_lang_combo.get()
+
+            # Save last selected processing option
+            last_processing_option = None
+            for button in getattr(self, '_prompt_buttons', []): # Use getattr with default to handle cases before buttons are created
+                if button.instate(['pressed']):
+                    last_processing_option = button.cget('text') # Get the button text (label)
+                    break
+            if last_processing_option:
+                self.config['last_processing_option'] = last_processing_option
+                print(f"Saved last processing option: {last_processing_option}")
+            else:
+                 # If no button is pressed (e.g., on initial startup before any button is clicked)
+                 # try to get the default from the first button if available
+                 if getattr(self, '_prompt_buttons', []):
+                     last_processing_option = self._prompt_buttons[0].cget('text')
+                     self.config['last_processing_option'] = last_processing_option
+                     print(f"Saved default processing option: {last_processing_option}")
+
+
+            # Save the updated config
+            save_config(self.config_filepath, self.config)
+            print(f"Saved window geometry: {current_geometry}, source: {self.config['source_language']}, target: {self.config['target_language']}")
+
+        except Exception as e:
+            print(f"Error saving window state: {e}")
+
+
 if __name__ == "__main__":
     app = App()
 
@@ -353,6 +456,9 @@ if __name__ == "__main__":
     app.protocol("WM_DELETE_WINDOW", on_closing)
 
     app.mainloop()
+
+    # Save window state and stop threads when mainloop exits
+    app.save_window_state() # Save window state before exiting
     app.tray_manager.stop_icon() # Ensure icon is stopped when mainloop exits
     app.hotkey_listener.stop() # Ensure hotkey listener is stopped
     app.hotkey_listener.join() # Wait for the hotkey listener thread to finish
