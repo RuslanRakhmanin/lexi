@@ -6,6 +6,7 @@ import tkinter as tk # Import tkinter for state constants
 import pyperclip # Import pyperclip for clipboard access
 from gemini_client import get_llm_response # Import the LLM function
 from markdown_renderer import render_markdown_to_html, _markdown_to_plain_text # Import the markdown renderer and plain text converter
+from clipboard_manager import ClipboardManager # Import the new ClipboardManager
 
 class AppLogic:
     """Contains the core application logic for Lexi."""
@@ -22,6 +23,10 @@ class AppLogic:
         self.state_manager = state_manager
         self.css_content = "" # Will be loaded from state_manager
         self._last_raw_llm_response = "" # Store the raw LLM response (Markdown)
+        self._last_rendered_html = "" # Store the last rendered HTML output
+
+        # Initialize the ClipboardManager
+        self.clipboard_manager = ClipboardManager()
 
         # Bind UI actions to logic methods
         self.ui_manager.bind_copy_button(self.copy_output)
@@ -174,6 +179,9 @@ class AppLogic:
         # Render Markdown to HTML
         html_content = render_markdown_to_html(response_text, css_content)
 
+        # Store the rendered HTML
+        self._last_rendered_html = html_content
+
         # Update the HtmlFrame widget via UI manager
         self.ui_manager.update_output_html(html_content)
 
@@ -195,17 +203,13 @@ class AppLogic:
             print(f"Error copying to clipboard: {e}")
 
     def copy_output_with_formatting(self):
-        """Copies the HTML output to the clipboard."""
-        # HtmlFrame content is already HTML.
-        # This might require getting the full HTML content from the HtmlFrame.
-        # For now, this is a placeholder.
-        print("Copy with formatting not yet implemented for HtmlFrame.")
-        # Example (if HtmlFrame provides a method to get HTML):
-        # try:
-        #     html_content = self.ui_manager.output_widget.get_html() # Assuming such a method exists
-        #     pyperclip.copy(html_content)
-        #     print("HTML content copied to clipboard.")
-        # except pyperclip.PyperclipException as e:
-        #     print(f"Error copying to clipboard: {e}")
-        # except Exception as e:
-        #     print(f"Error getting HTML content: {e}")
+        """Copies the HTML output to the clipboard using the ClipboardManager."""
+        if not self._last_rendered_html:
+            print("No formatted output to copy.")
+            return
+
+        success = self.clipboard_manager.copy_html_with_formatting(_markdown_to_plain_text(self._last_raw_llm_response) ,self._last_rendered_html)
+        if success:
+            print("Formatted output copied to clipboard.")
+        else:
+            print("Failed to copy formatted output.")
