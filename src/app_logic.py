@@ -32,6 +32,8 @@ class AppLogic:
         # Bind UI actions to logic methods
         self.ui_manager.bind_copy_button(self.copy_output)
         self.ui_manager.bind_copy_with_formatting_button(self.copy_output_with_formatting)
+        # Bind input widget text change to update processing buttons
+        self.ui_manager.bind_input_widget_change(self._on_input_text_change)
 
 
     def load_css(self, css_filepath):
@@ -168,6 +170,14 @@ class AppLogic:
         # except Exception as e:
         #     # Log or handle unexpected exceptions
         #     print(f"Unexpected error handling hotkey trigger: {e}")
+
+    def _on_input_text_change(self):
+        """Handles changes in the input widget text to update processing buttons."""
+        input_text = self.ui_manager.get_input_text()
+        input_type = self._determine_input_type(input_text)
+        # Recreate processing buttons based on the new input type
+        self.ui_manager.create_processing_buttons(input_type, self._on_prompt_button_click)
+
 
     def _update_ui_after_llm(self, response_text):
         """Updates the UI with the LLM response (rendered Markdown) and re-enables widgets."""

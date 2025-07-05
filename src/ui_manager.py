@@ -20,6 +20,8 @@ class UIManager:
         self.prompts_config = prompts_config
         self.css_content = css_content
 
+        self._input_widget_modified_proxy = None  # Proxy for input widget modification events
+
         # Widgets that need to be disabled/enabled
         self._main_widgets = []
         self._prompt_buttons = [] # Store references to prompt buttons
@@ -249,3 +251,20 @@ class UIManager:
     def bind_copy_with_formatting_button(self, command):
         """Binds a command to the Copy with Formatting button."""
         self.copy_with_formatting_button.config(command=command)
+
+    def bind_input_widget_change(self, callback):
+        """Binds a callback function to the input widget's text change event."""
+        # Create a proxy to manage the <<Modified>> event flag
+        self._input_widget_modified_proxy = self.input_widget.bind("<<Modified>>", lambda e: self._input_widget_modified(callback))
+        # Reset the flag initially
+        self.input_widget.edit_reset()
+
+    def _input_widget_modified(self, callback):
+        """Internal handler for the <<Modified>> event."""
+        # Check the modified flag
+        if self.input_widget.edit_modified():
+            # Call the provided callback
+            callback()
+            # Reset the modified flag
+            # self.input_widget.edit_reset()
+            self.input_widget.edit_modified(False)
