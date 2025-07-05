@@ -5,7 +5,7 @@ import threading
 import tkinter as tk # Import tkinter for state constants
 import pyperclip # Import pyperclip for clipboard access
 from gemini_client import get_llm_response # Import the LLM function
-from markdown_renderer import render_markdown_to_html # Import the markdown renderer
+from markdown_renderer import render_markdown_to_html, _markdown_to_plain_text # Import the markdown renderer and plain text converter
 
 class AppLogic:
     """Contains the core application logic for Lexi."""
@@ -21,6 +21,7 @@ class AppLogic:
         self.ui_manager = ui_manager
         self.state_manager = state_manager
         self.css_content = "" # Will be loaded from state_manager
+        self._last_raw_llm_response = "" # Store the raw LLM response (Markdown)
 
         # Bind UI actions to logic methods
         self.ui_manager.bind_copy_button(self.copy_output)
@@ -167,6 +168,9 @@ class AppLogic:
         # Use the CSS content loaded via load_css
         css_content = self.css_content
 
+        # Store the raw LLM response
+        self._last_raw_llm_response = response_text
+
         # Render Markdown to HTML
         html_content = render_markdown_to_html(response_text, css_content)
 
@@ -179,16 +183,16 @@ class AppLogic:
 
     def copy_output(self):
         """Copies the plain text output to the clipboard."""
-        # HtmlFrame doesn't provide easy access to plain text.
-        # This might require parsing the HTML content or storing the raw LLM response.
-        # For now, this is a placeholder.
-        print("Copy plain text not yet implemented for HtmlFrame.")
-        # Example (if raw text was stored):
-        # try:
-        #     pyperclip.copy(self._last_raw_llm_response)
-        #     print("Plain text copied to clipboard.")
-        # except pyperclip.PyperclipException as e:
-        #     print(f"Error copying to clipboard: {e}")
+        if not self._last_raw_llm_response:
+            print("No output to copy.")
+            return
+
+        try:
+            plain_text = _markdown_to_plain_text(self._last_raw_llm_response)
+            pyperclip.copy(plain_text)
+            print("Plain text copied to clipboard.")
+        except pyperclip.PyperclipException as e:
+            print(f"Error copying to clipboard: {e}")
 
     def copy_output_with_formatting(self):
         """Copies the HTML output to the clipboard."""

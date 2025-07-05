@@ -1,4 +1,5 @@
 import markdown
+import re
 
 def render_markdown_to_html(markdown_text, css_content=""):
     """
@@ -30,6 +31,30 @@ def render_markdown_to_html(markdown_text, css_content=""):
     </html>
     """
     return html_template
+
+
+def _markdown_to_plain_text(markdown_text):
+    """Converts a basic subset of Markdown to plain text."""
+    # This is a simple conversion and might not handle all Markdown complexities.
+    # Remove headings (##, ###, etc.)
+    plain_text = re.sub(r'^#+\s+', '', markdown_text, flags=re.MULTILINE)
+    # Remove bold and italics (*, _)
+    plain_text = re.sub(r'[\*_]', '', plain_text)
+    # Remove links ([text](url)) - keep only text
+    plain_text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', plain_text)
+    # Remove code blocks (```) and inline code (`)
+    plain_text = re.sub(r'```.*?```', '', plain_text, flags=re.DOTALL)
+    plain_text = re.sub(r'`(.*?)`', r'\1', plain_text)
+    # Remove list markers (-, *, +)
+    plain_text = re.sub(r'^[\-\*\+]\s+', '', plain_text, flags=re.MULTILINE)
+    # Remove horizontal rules (---, ***, etc.)
+    plain_text = re.sub(r'^-{3,}$|^\*{3,}$|^_{3,}$', '', plain_text, flags=re.MULTILINE)
+    # Basic table handling: replace | with tab or space (simple approach)
+    plain_text = re.sub(r'\s*\|\s*', ' | ', plain_text)
+    # Remove extra newlines that might result from removal
+    plain_text = re.sub(r'\n\s*\n', '\n\n', plain_text).strip()
+
+    return plain_text
 
 if __name__ == '__main__':
     # Example Usage
