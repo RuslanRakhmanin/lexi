@@ -5,11 +5,13 @@ import os
 
 DEFAULT_SETTINGS = {
     "api_key": "",
-    "llm_model": "gemini-2.5-flash",
+    "llm_model": "gemini-2.5-flash-lite-preview-06-17",
     "source_language": "English",
     "target_language": "Ukrainian",
     "last_processing_option": "Translate",
-    "window_geometry": "800x600"
+    "window_geometry": "800x600",
+    "source_languages": ["English", "British English", "Spanish", "French", "German", "Ukrainian", "Russian"],
+    "target_languages": ["Ukrainian", "Russian", "English", "British English", "Spanish", "French", "German"]
 }
 
 DEFAULT_PROMPTS = {
@@ -71,6 +73,11 @@ def load_config(filepath):
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             config = json.load(f)
+
+        # Add default values for new keys if they don't exist
+        config.setdefault("source_languages", DEFAULT_SETTINGS["source_languages"])
+        config.setdefault("target_languages", DEFAULT_SETTINGS["target_languages"])
+
         return config
     except json.JSONDecodeError:
         print(f"Error decoding JSON from {filepath}. Invalid format.")

@@ -7,7 +7,7 @@ import tkinterweb
 class UIManager:
     """Manages the Tkinter user interface elements for the Lexi application."""
 
-    def __init__(self, root, prompts_config, css_content):
+    def __init__(self, root, prompts_config, css_content, config):
         """
         Initializes the UIManager.
 
@@ -15,10 +15,12 @@ class UIManager:
             root: The root Tkinter window (the App instance).
             prompts_config: The loaded prompts configuration.
             css_content: The loaded CSS content for HTML rendering.
+            config: The loaded application configuration.
         """
         self.root = root
         self.prompts_config = prompts_config
         self.css_content = css_content
+        self.config = config
 
         self._input_widget_modified_proxy = None  # Proxy for input widget modification events
 
@@ -37,9 +39,9 @@ class UIManager:
         # 1. Language Selectors
         self.lang_frame = ttk.Frame(self.main_frame)
         self.from_label = ttk.Label(self.lang_frame, text="From:")
-        self.source_lang_combo = ttk.Combobox(self.lang_frame, values=["English", "Spanish", "French", "German", "Ukrainian", "Russian"], width=15)
+        self.source_lang_combo = ttk.Combobox(self.lang_frame, values=self.config.get("source_languages", []), width=15)
         self.to_label = ttk.Label(self.lang_frame, text="To:")
-        self.target_lang_combo = ttk.Combobox(self.lang_frame, values=["Ukrainian", "Russian", "English", "Spanish", "French", "German"], width=15)
+        self.target_lang_combo = ttk.Combobox(self.lang_frame, values=self.config.get("target_languages", []), width=15)
 
         self._main_widgets.extend([self.source_lang_combo, self.target_lang_combo])
 

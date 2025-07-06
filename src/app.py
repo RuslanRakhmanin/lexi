@@ -31,7 +31,7 @@ class App(tk.Tk):
         prompts_config = self.state_manager.get_prompts_config()
 
         # Initialize UIManager
-        self.ui_manager = UIManager(self, prompts_config, "") # CSS content loaded later by AppLogic
+        self.ui_manager = UIManager(self, prompts_config, "", config) # CSS content loaded later by AppLogic
 
         # Initialize AppLogic
         self.tray_manager = TrayManager(self)
