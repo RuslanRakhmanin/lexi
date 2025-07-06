@@ -164,12 +164,41 @@ class AppLogic:
                     # Call the button click handler directly with the first button and its definition
                     self._on_prompt_button_click(self.ui_manager._prompt_buttons[0], default_prompt_def)
 
-
         except pyperclip.PyperclipException as e:
             print(f"Error handling hotkey trigger (PyperclipException): {e}")
         # except Exception as e:
         #     # Log or handle unexpected exceptions
         #     print(f"Unexpected error handling hotkey trigger: {e}")
+        
+    def process_input_from_enter(self):
+        """Triggers processing based on the currently selected prompt option when Enter is pressed."""
+        print("Enter key pressed. Initiating processing.")
+        # Get the label of the currently pressed prompt button
+        selected_prompt_label = self.ui_manager.get_pressed_prompt_button_label()
+        if not selected_prompt_label:
+            print("No prompt button selected. Cannot process.")
+            return
+
+        # Determine input type to get the correct prompt configuration
+        input_text = self.ui_manager.get_input_text()
+        input_type = self._determine_input_type(input_text)
+        prompts = self.state_manager.get_prompts_config().get(input_type, [])
+
+        # Find the corresponding prompt definition
+        selected_prompt_def = None
+        for p in prompts:
+            if p.get("label") == selected_prompt_label:
+                selected_prompt_def = p
+                break
+
+        if selected_prompt_def:
+            # Call the existing button click handler with a dummy button and the found definition
+            # The _on_prompt_button_click method doesn't strictly need a real button object
+            # for its logic, only the prompt_def.
+            self._on_prompt_button_click(None, selected_prompt_def)
+        else:
+            print(f"Error: Could not find prompt definition for label '{selected_prompt_label}'")
+
 
     def _on_input_text_change(self):
         """Handles changes in the input widget text to update processing buttons."""

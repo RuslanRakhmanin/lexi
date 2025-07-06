@@ -49,6 +49,9 @@ class App(tk.Tk):
         # Bind Escape key to hide window
         self.ui_manager.bind_escape_key(self._on_escape_pressed)
 
+        # Bind Enter and Shift+Enter to the input widget
+        self.ui_manager.bind_input_key_press(self.app_logic.process_input_from_enter)
+
         self.title("Lexi - Gemini-Powered Text Assistant")
 
         # Restore window geometry if available in config

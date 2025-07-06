@@ -274,3 +274,19 @@ class UIManager:
     def bind_escape_key(self, callback):
         """Binds a callback function to the Escape key press event on the root window."""
         self.root.bind('<Escape>', lambda event: callback())
+
+    def bind_input_key_press(self, process_callback):
+        """Binds key press events to the input widget."""
+        self.input_widget.bind('<Return>', lambda event: self._on_input_key_press(event, process_callback))
+        self.input_widget.bind('<Shift-Return>', lambda event: self._on_input_key_press(event, process_callback))
+
+    def _on_input_key_press(self, event, process_callback):
+        """Handles key press events in the input widget."""
+        if event.state & 0x1:  # Check if Shift key is pressed (event.state is a bitmask)
+            # Shift + Enter: Insert a newline character
+            self.input_widget.insert(tk.INSERT, "\n")
+            return "break"  # Prevent default Tkinter behavior (which would add another newline)
+        else:
+            # Enter: Trigger processing
+            process_callback()
+            return "break"  # Prevent default Tkinter behavior (which would add a newline)
