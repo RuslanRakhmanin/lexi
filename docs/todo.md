@@ -1,5 +1,11 @@
 # The app TODO list
 
+## Features
+
+- [ ] Add Ollama as possible LLM provider
+- [ ] Make the app work on Linux
+- [ ] Make the app work on MacOS
+
 ## Interface
 
 - [ ] add a separator between the input and output frames so it makes possible to change the input widget size without changing the window size
@@ -7,8 +13,8 @@
 
 ## Markdown rendering
 
-- [ ] Add support for ~~strikethrough~~
-- [ ] Add support for ==highlight==
+- [x] Add support for ~~strikethrough~~
+- [x] Add support for ==highlight==
 
 ## System tray
 
