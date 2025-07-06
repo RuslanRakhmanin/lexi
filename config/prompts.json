@@ -2,12 +2,12 @@
   "word": [
     {
       "label": "Translate",
-      "prompt": "Translate the {from_language} word {text} to {to_language}. Use {to_language} for your answer. \n Format: \n - Transcription of the word {text} \n - Translations: (all variants, `highlight each`) \n - Examples: ({from_language} sentence with **word** -> {to_language} sentence with **translation**)",
+      "prompt": "Translate the {from_language} word {text} to {to_language}. Use {to_language} for your answer. \n Format: \n - Transcription of the word {text} in International Phonetic Alphabet.\n - Translations: (all variants, `highlight each`) \n - Examples: ({from_language} sentence with **word** -> {to_language} sentence with **translation**)",
       "default": true
     },
     {
       "label": "Full Analysis",
-      "prompt": "Analyse the the word {text} from language {from_language}. Use {from_language} for your answer. \n Format: \n - Definitions of the word {text} \n - Synonyms of the word {text} \n - Antonyms of the word {text} \n - Conjugations of the word {text}",
+      "prompt": "Analyse the the word {text} from language {from_language}. Use {from_language} for your answer. \n Format: \n - Definitions of the word {text} \n - Synonyms of the word {text}\n - Antonyms of the word {text} \n - Conjugations of the word {text}",
       "default": false
     },
     {
@@ -25,12 +25,12 @@
     },
     {
       "label": "Proofread",
-      "prompt": "Fix the following text grammar, punctuation, and rephrase according to {from_language} rules. Use Markdown for your corrections: **new text** for additions and ~~old text~~ for deletions. \nOriginal text:\n '{text}'",
+      "prompt": "Fix the following text grammar, punctuation, and rephrase according to {from_language} rules. Use text formatting for your corrections: ++new text++ for additions and ~~old text~~ for deletions. \nOriginal text:\n '{text}'",
       "default": false
     },
     {
       "label": "Official Email",
-      "prompt": "The following text is an official email. Fix it's grammar, punctuation, rephrase according to {from_language} rules and the writing style. Use Markdown for your corrections: **new text** for additions and ~~old text~~ for deletions. Suggest improvements. \nOriginal text:\n '{text}'",
+      "prompt": "The following text is an official email. Fix it's grammar, punctuation, rephrase according to {from_language} rules and the writing style. Use text formatting for your corrections: ++new text++ for additions and ~~old text~~ for deletions. Suggest improvements. \nOriginal text:\n '{text}'",
       "default": false
     },    {
       "label": "Custom Prompt",

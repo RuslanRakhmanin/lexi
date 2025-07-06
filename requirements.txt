@@ -5,4 +5,5 @@ python-markdown
 pyperclip
 tkinterweb
 markdown
+markdown-del-ins
 klembord

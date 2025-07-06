@@ -13,7 +13,7 @@ def render_markdown_to_html(markdown_text, css_content=""):
         A string containing the full HTML document with rendered Markdown and embedded CSS.
     """
     # Convert markdown to HTML
-    html_body = markdown.markdown(markdown_text, extensions=['tables'])
+    html_body = markdown.markdown(markdown_text, extensions=['tables', 'extra', 'markdown_del_ins'])
 
     # Create a full HTML document structure
     html_template = f"""
@@ -63,6 +63,7 @@ if __name__ == '__main__':
 ## Heading 2
 
 This is **bold** text and this is *italic* text.
+This is ~~strikethrough~~ text and this is ==highlighted== text.
 
 - List item 1
 - List item 2
