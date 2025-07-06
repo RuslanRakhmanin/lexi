@@ -2,17 +2,17 @@
   "word": [
     {
       "label": "Translate",
-      "prompt": "Give the transcription in {from_language}. Translate the word '{text}' from {from_language} to {to_language}. Give all possible meanings and usages.",
+      "prompt": "Translate the {from_language} word {text} to {to_language}. Use {to_language} for your answer. \n Format: \n - Transcription of the word {text} \n - Translations: (all variants, `highlight each`) \n - Examples: ({from_language} sentence with **word** -> {to_language} sentence with **translation**)",
       "default": true
     },
     {
       "label": "Full Analysis",
-      "prompt": "Provide a comprehensive analysis for the word '{text}' in {from_language}.  Give all possible meanings and usages. Include its definition, synonyms, antonyms, and three example sentences.",
+      "prompt": "Analyse the the word {text} from language {from_language}. Use {from_language} for your answer. \n Format: \n - Definitions of the word {text} \n - Synonyms of the word {text} \n - Antonyms of the word {text} \n - Conjugations of the word {text}",
       "default": false
     },
     {
       "label": "Custom Prompt",
-      "prompt": "'{text}'. Make a fairy tail about this word in {from_language}. Include a moral lesson.",
+      "prompt": "'{text}'. Make a short fairy tail about this word in {from_language}. Include a moral lesson.",
       "default": false
     }
 
@@ -20,17 +20,21 @@
   "phrase": [
     {
       "label": "Translate",
-      "prompt": "Translate the following text from {from_language} to {to_language}. Text: '{text}'",
+      "prompt": "Translate the following text from {from_language} to {to_language}. \n --- \n'{text}'",
       "default": true
     },
     {
       "label": "Proofread",
-      "prompt": "Proofread and correct the following text, keeping the original meaning. Explain the corrections. The original text is in {from_language}. Use Markdown for your corrections: **new text** for additions and ~~old text~~ for deletions. Original text: '{text}'",
+      "prompt": "Fix the following text grammar, punctuation, and rephrase according to {from_language} rules. Use Markdown for your corrections: **new text** for additions and ~~old text~~ for deletions. \nOriginal text:\n '{text}'",
       "default": false
     },
     {
+      "label": "Official Email",
+      "prompt": "The following text is an official email. Fix it's grammar, punctuation, rephrase according to {from_language} rules and the writing style. Use Markdown for your corrections: **new text** for additions and ~~old text~~ for deletions. Suggest improvements. \nOriginal text:\n '{text}'",
+      "default": false
+    },    {
       "label": "Custom Prompt",
-      "prompt": "'{text}'. Make a fairy tail about this text in {from_language}. Include a moral lesson.",
+      "prompt": "'{text}'\n How this text could improved?",
       "default": false
     }
 

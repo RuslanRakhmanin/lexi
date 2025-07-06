@@ -5,6 +5,11 @@
 - [ ] add a separator between the input and output frames so it makes possible to change the input widget size without changing the window size
 - [ ] Read available languages from Genimi API and use them to fill the language combo boxes
 
+## Markdown rendering
+
+- [ ] Add support for ~~strikethrough~~
+- [ ] Add support for ==highlight==
+
 ## System tray
 
 - [ ] Handle double-click (pystray doesn't have a direct double-click event, but we can simulate it or rely on the menu for show/hide)
