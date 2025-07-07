@@ -14,7 +14,7 @@ class TrayManager:
     def create_icon(self):
         # Create a dummy image for the icon
 
-        image = Image.new('RGB', (64, 64), color = 'green')
+        image = Image.open("config/Feather1.ico")
 
         menu = (
             pystray.MenuItem('Show/Hide Window', self.toggle_window_visibility),

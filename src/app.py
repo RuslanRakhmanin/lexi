@@ -53,6 +53,7 @@ class App(tk.Tk):
         self.ui_manager.bind_input_key_press(self.app_logic.process_input_from_enter)
 
         self.title("Lexi - Gemini-Powered Text Assistant")
+        self.iconbitmap(os.path.join("config", "Feather1.ico"))
 
         # Restore window geometry if available in config
         window_geometry = config.get("window_geometry")

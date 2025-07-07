@@ -26,6 +26,6 @@ The Lexi Project is a lightweight, responsive desktop utility designed to seamle
 ## 🛠️ Tech Stack
 
 * **Language**: Python 3
-* **AI Engine**: Google Gemini API via [`google-generativeai`](https://pypi.org/project/google-generativeai/)
+* **AI Engine**: Google Gemini API via [`python-genai`](https://github.com/googleapis/python-genai)
 * **GUI**: [`tkinter`](https://docs.python.org/3/library/tkinter.html)
 * **System Integration**: [`pystray`](https://pystray.readthedocs.io/) for system tray functionality and [`pynput`](https://pynput.readthedocs.io/) for global hotkey listening.
