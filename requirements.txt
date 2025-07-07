@@ -1,6 +1,7 @@
 pynput
 pystray
 google-genai
+google.api_core
 python-markdown
 pyperclip
 tkinterweb
