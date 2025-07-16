@@ -58,7 +58,7 @@ class UIManager:
         self._main_widgets.append(self.custom_prompt_entry)
 
         # 5. Output Widget (HtmlFrame)
-        self.output_widget = tkinterweb.HtmlFrame(self.main_frame, height=10)
+        self.output_widget = tkinterweb.HtmlFrame(self.main_frame, height=10, messages_enabled = False)
         # HtmlFrame does not have a 'state' option, so we don't add it to _main_widgets.
 
         # 6. Action Buttons Frame
