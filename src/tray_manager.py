@@ -17,7 +17,7 @@ class TrayManager:
         image = Image.open("config/Feather1.ico")
 
         menu = (
-            pystray.MenuItem('Show/Hide Window', self.toggle_window_visibility),
+            pystray.MenuItem('Show/Hide Window', self.toggle_window_visibility, default=True),
             pystray.MenuItem('Exit', self.exit_application)
         )
 
