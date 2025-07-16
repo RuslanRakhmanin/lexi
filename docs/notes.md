@@ -22,3 +22,10 @@ The "Why" - Focus Stealing Prevention
 Modern operating systems (especially Windows) have rules to prevent applications from "stealing focus." If you are actively typing in a web browser or a document, it would be incredibly disruptive and a security risk if another background application could suddenly pop up and start receiving your keystrokes.
 
 Maybe this is the reason why the Reverso app uses another small window to pop up on Ctrl+C double click.
+
+## Building the project into a single executable
+
+```bash
+pyinstaller --onefile --console --icon "D:\Work\lexi\config\Feather1.ico" --name "Lexi"  src\app.py
+```
+I have to add `import markdown_del_ins` call explicitly into markdown_renderer.py. Otherwise the pyinstaller ignored it even with `--hidden-import markdown_del_ins` and `--collect-submodules "markdown"`

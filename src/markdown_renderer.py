@@ -1,4 +1,5 @@
 import markdown
+import markdown_del_ins
 import re
 
 def render_markdown_to_html(markdown_text, css_content=""):
