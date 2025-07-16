@@ -25,6 +25,7 @@ Maybe this is the reason why the Reverso app uses another small window to pop up
 
 ## Building the project into a single executable
 
+Debug build with a console
 ```bash
 pyinstaller --onefile --console --icon "D:\Work\lexi\config\Feather1.ico" --name "Lexi"  src\app.py
 ```

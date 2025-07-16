@@ -42,8 +42,9 @@ class UIManager:
         self.source_lang_combo = ttk.Combobox(self.lang_frame, values=self.config.get("source_languages", []), width=15)
         self.to_label = ttk.Label(self.lang_frame, text="To:")
         self.target_lang_combo = ttk.Combobox(self.lang_frame, values=self.config.get("target_languages", []), width=15)
+        self.swap_lang_button = ttk.Button(self.lang_frame, text="↔", width=3, command=self._swap_languages)
 
-        self._main_widgets.extend([self.source_lang_combo, self.target_lang_combo])
+        self._main_widgets.extend([self.source_lang_combo, self.target_lang_combo, self.swap_lang_button])
 
         # 2. Input Widget
         self.input_widget = tk.Text(self.main_frame, height=5, wrap=tk.WORD)
@@ -95,7 +96,8 @@ class UIManager:
         # 1. Language Selectors
         self.lang_frame.grid(row=0, column=0, columnspan=2, sticky=(tk.W, tk.E))
         self.from_label.pack(side=tk.LEFT, padx=(0, 5))
-        self.source_lang_combo.pack(side=tk.LEFT, padx=(0, 10))
+        self.source_lang_combo.pack(side=tk.LEFT, padx=(0, 5))
+        self.swap_lang_button.pack(side=tk.LEFT, padx=(0, 5))
         self.to_label.pack(side=tk.LEFT, padx=(0, 5))
         self.target_lang_combo.pack(side=tk.LEFT)
 
@@ -290,3 +292,11 @@ class UIManager:
             # Enter: Trigger processing
             process_callback()
             return "break"  # Prevent default Tkinter behavior (which would add a newline)
+
+    def _swap_languages(self):
+        """Swaps the selected source and target languages."""
+        source_lang = self.get_source_language()
+        target_lang = self.get_target_language()
+
+        self.set_source_language(target_lang)
+        self.set_target_language(source_lang)
