@@ -66,7 +66,7 @@ class TrayManager:
 
     def exit_application(self, icon, item):
         icon.stop()
-        self.window.quit() # Exit the tkinter application
+        self.window.after(0, self.window.destroy) # Schedule window destruction on the main thread
 
     def stop_icon(self):
         if self.icon:

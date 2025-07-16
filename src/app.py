@@ -103,7 +103,7 @@ if __name__ == "__main__":
     app.mainloop()
 
     # Save window state and stop threads when mainloop exits
-    app.state_manager.save_window_state(app.ui_manager) # Save window state before exiting
+    # app.state_manager.save_window_state(app.ui_manager) # Save window state before exiting
     app.tray_manager.stop_icon() # Ensure icon is stopped when mainloop exits
     app.hotkey_listener.stop() # Ensure hotkey listener is stopped
     app.hotkey_listener.join() # Wait for the hotkey listener thread to finish
