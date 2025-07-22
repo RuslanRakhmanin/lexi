@@ -50,6 +50,9 @@ class UIManager:
         self.input_widget = tk.Text(self.main_frame, height=5, wrap=tk.WORD)
         self._main_widgets.append(self.input_widget)
 
+        # Clear button for input widget
+        self.clear_button = ttk.Button(self.input_widget, text="X", width=2, command=self._clear_input_widget)
+
         # 3. Processing Options Frame (Buttons added dynamically)
         self.processing_options_frame = ttk.Frame(self.main_frame)
         self._main_widgets.append(self.processing_options_frame) # Add the frame containing buttons
@@ -103,6 +106,11 @@ class UIManager:
 
         # 2. Input Widget
         self.input_widget.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E, tk.N, tk.S), pady=10)
+        # Bind events for the clear button
+        self.input_widget.bind("<Enter>", self._show_clear_button)
+        self.input_widget.bind("<Leave>", self._hide_clear_button)
+        self.clear_button.bind("<Enter>", self._show_clear_button) # Keep button visible when mouse is over it
+        self.clear_button.bind("<Leave>", self._hide_clear_button)
 
         # 3. Processing Options Frame
         self.processing_options_frame.grid(row=4, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(0, 5))
@@ -273,6 +281,17 @@ class UIManager:
             # self.input_widget.edit_reset()
             self.input_widget.edit_modified(False)
 
+    def _show_clear_button(self, event=None):
+        """Shows the clear button."""
+        # Place the button in top-left corner with better visual alignment
+        y = 5
+        x = self.input_widget.winfo_width() - self.clear_button.winfo_width() - 8
+        self.clear_button.place(in_=self.input_widget, relx=0, rely=0, x=x, y=y, anchor='nw')
+
+    def _hide_clear_button(self, event=None):
+        """Hides the clear button."""
+        self.clear_button.place_forget()
+
     def bind_escape_key(self, callback):
         """Binds a callback function to the Escape key press event on the root window."""
         self.root.bind('<Escape>', lambda event: callback())
@@ -292,6 +311,10 @@ class UIManager:
             # Enter: Trigger processing
             process_callback()
             return "break"  # Prevent default Tkinter behavior (which would add a newline)
+
+    def _clear_input_widget(self):
+        """Clears the text in the input widget."""
+        self.input_widget.delete("1.0", tk.END)
 
     def _swap_languages(self):
         """Swaps the selected source and target languages."""
