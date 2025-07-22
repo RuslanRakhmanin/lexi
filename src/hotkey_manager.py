@@ -1,21 +1,21 @@
+# pylint: disable=broad-except
+
 import threading
 import time
 from pynput import keyboard
 
-class HotkeyListener(threading.Thread):
+class HotkeyManager:
     """
-    Listens for a double press of Ctrl+C within a specified time window
-    and calls a callback function when detected.
+    Manages the global hotkey listener for double Ctrl+C presses.
     """
     def __init__(self, callback, window_ms=400):
-        super().__init__()
         self.callback = callback
         self.window_s = window_ms / 1000.0
         self._last_press_time = 0
         self._ctrl_pressed = False
         self._c_pressed = False
         self._listener = None
-        self._running = True
+        self._running = False # Renamed from _running to reflect manager state
 
     def _on_press(self, key):
         try:
@@ -38,9 +38,9 @@ class HotkeyListener(threading.Thread):
                 else:
                     self._last_press_time = current_time
 
-        except AttributeError:
-            # Ignore special keys
-            pass
+        except Exception as e:
+            # Log any exception to prevent the listener thread from crashing silently
+            print(f"Error in hotkey listener on_press: {e}")
 
     def _on_release(self, key):
         try:
@@ -53,20 +53,26 @@ class HotkeyListener(threading.Thread):
             # Ignore special keys other than Ctrl
             pass
 
-        if key == keyboard.Key.esc:
-            # Optional: Stop listener with Esc key
-            return False
-
-    def run(self):
-        """Starts the keyboard listener."""
-        with keyboard.Listener(on_press=self._on_press, on_release=self._on_release) as self._listener:
-            self._listener.join()
+    def start(self):
+        """Starts the keyboard listener in a separate daemon thread."""
+        if not self._running:
+            self._listener = keyboard.Listener(on_press=self._on_press, on_release=self._on_release)
+            self._listener.daemon = True # Allow the program to exit even if the listener is still running
+            self._listener.start()
+            self._running = True
+            print("Hotkey listener started.")
 
     def stop(self):
         """Stops the keyboard listener."""
-        self._running = False
-        if self._listener:
+        if self._running and self._listener:
             self._listener.stop()
+            self._running = False
+            print("Hotkey listener stopped.")
+
+    def join(self):
+        """Waits for the listener thread to terminate."""
+        if self._listener and self._listener.is_alive():
+            self._listener.join()
 
 if __name__ == '__main__':
     # Example Usage:
@@ -74,9 +80,15 @@ if __name__ == '__main__':
         print("Ctrl+C double-press detected!")
 
     print("Listening for double Ctrl+C press (within 400ms)... Press Esc to exit.")
-    hotkey_listener = HotkeyListener(my_callback)
-    hotkey_listener.start()
+    hotkey_manager = HotkeyManager(my_callback)
+    hotkey_manager.start()
 
-    # Keep the main thread alive until the listener stops
-    hotkey_listener.join()
-    print("Listener stopped.")
+    # Keep the main thread alive for a bit to allow the listener to run
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        hotkey_manager.stop()
+        print("Listener stopped.")

@@ -3,7 +3,7 @@
 """Main application for the Lexi text assistant with system tray integration."""
 import os
 import tkinter as tk
-from hotkey_manager import HotkeyListener
+from hotkey_manager import HotkeyManager
 from tray_manager import TrayManager
 from state_manager import StateManager
 from ui_manager import UIManager
@@ -43,8 +43,8 @@ class App(tk.Tk):
 
         # Initialize TrayManager and HotkeyListener
         self.tray_manager.create_icon()
-        self.hotkey_listener = HotkeyListener(self.app_logic._on_hotkey_triggered) # Pass AppLogic method
-        self.hotkey_listener.start()
+        self.hotkey_manager = HotkeyManager(self.app_logic._on_hotkey_triggered) # Pass AppLogic method
+        self.hotkey_manager.start()
 
         # Bind Escape key to hide window
         self.ui_manager.bind_escape_key(self._on_escape_pressed)
@@ -105,5 +105,5 @@ if __name__ == "__main__":
     # Save window state and stop threads when mainloop exits
     # app.state_manager.save_window_state(app.ui_manager) # Save window state before exiting
     app.tray_manager.stop_icon() # Ensure icon is stopped when mainloop exits
-    app.hotkey_listener.stop() # Ensure hotkey listener is stopped
-    app.hotkey_listener.join() # Wait for the hotkey listener thread to finish
+    app.hotkey_manager.stop() # Ensure hotkey listener is stopped
+    app.hotkey_manager.join() # Wait for the hotkey listener thread to finish

@@ -1,3 +1,5 @@
+# pylint: disable=broad-except
+
 import sys
 
 # Attempt to import klembord, which is needed for Windows HTML clipboard support

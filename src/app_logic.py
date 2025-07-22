@@ -1,4 +1,5 @@
 # pylint: disable=line-too-long
+# pylint: disable=broad-except
 
 import asyncio
 import threading
