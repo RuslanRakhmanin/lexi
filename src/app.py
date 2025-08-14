@@ -2,6 +2,7 @@
 
 """Main application for the Lexi text assistant with system tray integration."""
 import os
+import sys
 import tkinter as tk
 from hotkey_manager import HotkeyManager
 from tray_manager import TrayManager
@@ -15,8 +16,19 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
 
+        # Get the absolute path to a resource, works for dev and PyInstaller
+        if hasattr(sys, '_MEIPASS'):
+            # Running in PyInstaller bundle
+            self.base_path = sys._MEIPASS
+        else:
+            # Running in normal Python environment
+            self.base_path = os.path.dirname(__file__)
+
         self.config_filepath = os.path.join("config", "settings.json")
         self.prompts_filepath = os.path.join("config", "prompts.json")
+        
+
+        self.icon_filepath = os.path.join(self.base_path, "icons", "Feather1.ico")
         css_filepath = os.path.join("config", "styles.css")
 
         # Initialize StateManager and load state
@@ -53,7 +65,8 @@ class App(tk.Tk):
         self.ui_manager.bind_input_key_press(self.app_logic.process_input_from_enter)
 
         self.title("Lexi - Gemini-Powered Text Assistant")
-        self.iconbitmap(os.path.join("config", "Feather1.ico"))
+        # self.iconbitmap(os.path.join("config", "Feather1.ico"))
+        self.iconbitmap(self.icon_filepath)
 
         # Restore window geometry if available in config
         window_geometry = config.get("window_geometry")

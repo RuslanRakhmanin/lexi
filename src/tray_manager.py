@@ -1,4 +1,5 @@
 # This module manages the system tray icon and its interactions with the main application window."""
+import os
 import tkinter as tk
 import pystray
 from PIL import Image
@@ -14,7 +15,8 @@ class TrayManager:
     def create_icon(self):
         # Create a dummy image for the icon
 
-        image = Image.open("config/Feather1.ico")
+        # image = Image.open("config/Feather1.ico")
+        image = Image.open(self.window.icon_filepath)
 
         menu = (
             pystray.MenuItem('Show/Hide Window', self.toggle_window_visibility, default=True),
