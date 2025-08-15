@@ -1,5 +1,5 @@
 import markdown
-import markdown_del_ins
+import markdown_del_ins # Should be here to make pyinstaller able to collect all libraries needed
 import re
 
 def render_markdown_to_html(markdown_text, css_content=""):

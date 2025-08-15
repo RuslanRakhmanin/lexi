@@ -1,4 +1,5 @@
-# This module manages the system tray icon and its interactions with the main application window."""
+"""This module manages the system tray icon and its interactions with the main application window."""
+
 import os
 import tkinter as tk
 import pystray

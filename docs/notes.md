@@ -29,4 +29,10 @@ Debug build with a console
 ```bash
 pyinstaller --onefile --console --icon "src\icons\Feather1.ico" --add-data="src/icons/Feather1.ico;icons" --name "Lexi_debug"  src\app.py
 ```
+
+Release build
+```bash
+pyinstaller --onefile --noconsole --icon "src\icons\Feather1.ico" --add-data="src/icons/Feather1.ico;icons" --name "Lexi"  src\app.py
+```
+
 I have to add `import markdown_del_ins` call explicitly into markdown_renderer.py. Otherwise the pyinstaller ignored it even with `--hidden-import markdown_del_ins` and `--collect-submodules "markdown"`

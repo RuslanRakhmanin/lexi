@@ -5,7 +5,7 @@ import os
 
 DEFAULT_SETTINGS = {
     "api_key": "",
-    "llm_model": "gemini-2.5-flash-lite-preview-06-17",
+    "llm_model": "gemini-2.5-flash-lite",
     "source_language": "English",
     "target_language": "Ukrainian",
     "last_processing_option": "Translate",
@@ -130,8 +130,8 @@ def load_prompts(filepath):
             prompts = json.load(f)
         # Basic validation: check for 'word' and 'phrase' keys
         if "word" not in prompts or "phrase" not in prompts:
-             print(f"Invalid prompts.json structure: missing 'word' or 'phrase' keys in {filepath}. Using default prompts.")
-             return DEFAULT_PROMPTS
+            print(f"Invalid prompts.json structure: missing 'word' or 'phrase' keys in {filepath}. Using default prompts.")
+            return DEFAULT_PROMPTS
 
         return prompts
     except json.JSONDecodeError:
