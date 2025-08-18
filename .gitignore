@@ -213,3 +213,4 @@ test/
 config/settings.json
 Lexi_debug.exe
 Lexi.exe
+.vscode/settings.json

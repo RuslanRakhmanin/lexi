@@ -58,15 +58,32 @@ class App(tk.Tk):
         self.hotkey_manager = HotkeyManager(self.app_logic._on_hotkey_triggered) # Pass AppLogic method
         self.hotkey_manager.start()
 
-        # Bind Escape key to hide window
-        self.ui_manager.bind_escape_key(self._on_escape_pressed)
+        # Bind Escape key to hide window (only if system tray is available)
+        if hasattr(self.tray_manager, 'icon') and self.tray_manager.icon is not None:
+            self.ui_manager.bind_escape_key(self._on_escape_pressed)
+        else:
+            # On systems without system tray, bind escape to minimize instead
+            self.ui_manager.bind_escape_key(self._on_escape_minimize)
 
         # Bind Enter and Shift+Enter to the input widget
         self.ui_manager.bind_input_key_press(self.app_logic.process_input_from_enter)
 
         self.title("Lexi - Gemini-Powered Text Assistant")
-        # self.iconbitmap(os.path.join("config", "Feather1.ico"))
-        self.iconbitmap(self.icon_filepath)
+        # Try to set icon, handle failure gracefully on Linux
+        try:
+            self.iconbitmap(self.icon_filepath)
+        except tk.TclError:
+            print(f"Warning: Could not load icon from {self.icon_filepath}")
+            # On Linux, try to use a PNG instead or skip icon setting
+            png_icon = os.path.join(self.base_path, "icons", "Feather1.png")
+            if os.path.exists(png_icon):
+                try:
+                    from PIL import Image, ImageTk
+                    img = Image.open(png_icon)
+                    self.iconphoto(True, ImageTk.PhotoImage(img))
+                except Exception as e:
+                    print(f"Warning: Could not load PNG icon either: {e}")
+            # Continue without icon if both attempts fail
 
         # Restore window geometry if available in config
         window_geometry = config.get("window_geometry")
@@ -100,23 +117,33 @@ class App(tk.Tk):
     def _on_escape_pressed(self):
         """Hides the application window when the Escape key is pressed."""
         print("Escape key pressed. Hiding window.")
-        self.tray_manager.toggle_window_visibility(None, None) # Hide the window
+        self.tray_manager.toggle_window_visibility() # Hide the window
+
+    def _on_escape_minimize(self):
+        """Minimizes the application window when Escape is pressed (no system tray)."""
+        print("Escape key pressed. Minimizing window.")
+        self.iconify()  # Minimize to taskbar
 
 if __name__ == "__main__":
     app = App()
 
-    # Handle closing the window via the 'X' button and hiding to tray
+    # Handle closing the window via the 'X' button
     def on_closing():
         # Save window state before hiding/exiting
         app.state_manager.save_window_state(app.ui_manager)
-        app.tray_manager.toggle_window_visibility(None, None) # Hide the window instead of destroying
+        
+        # If system tray is available, hide to tray; otherwise, exit
+        if hasattr(app.tray_manager, 'icon') and app.tray_manager.icon is not None:
+            app.tray_manager.toggle_window_visibility()  # Hide to tray
+        else:
+            # No system tray, exit the application
+            app.destroy()
 
     app.protocol("WM_DELETE_WINDOW", on_closing)
 
     app.mainloop()
 
     # Save window state and stop threads when mainloop exits
-    # app.state_manager.save_window_state(app.ui_manager) # Save window state before exiting
     app.tray_manager.stop_icon() # Ensure icon is stopped when mainloop exits
     app.hotkey_manager.stop() # Ensure hotkey listener is stopped
     app.hotkey_manager.join() # Wait for the hotkey listener thread to finish

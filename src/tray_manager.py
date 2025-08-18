@@ -1,6 +1,5 @@
 """This module manages the system tray icon and its interactions with the main application window."""
 
-import os
 import tkinter as tk
 import pystray
 from PIL import Image
@@ -14,25 +13,45 @@ class TrayManager:
         self.is_window_visible = True
 
     def create_icon(self):
-        # Create a dummy image for the icon
+        """Create system tray icon with graceful fallback for Linux/WSL."""
+        # Check if running in WSL
+        is_wsl = False
+        try:
+            with open('/proc/version', 'r') as f:
+                is_wsl = 'microsoft' in f.read().lower()
+        except:
+            pass
+            
+        if is_wsl:
+            print("Info: Running in WSL environment - system tray functionality is not available")
+            print("Application will run in windowed mode only")
+            self.icon = None
+            return
+            
+        try:
+            # Create a dummy image for the icon
+            image = Image.open(self.window.icon_filepath)
 
-        # image = Image.open("config/Feather1.ico")
-        image = Image.open(self.window.icon_filepath)
+            menu = (
+                pystray.MenuItem('Show/Hide Window', self.toggle_window_visibility, default=True),
+                pystray.MenuItem('Exit', self.exit_application)
+            )
 
-        menu = (
-            pystray.MenuItem('Show/Hide Window', self.toggle_window_visibility, default=True),
-            pystray.MenuItem('Exit', self.exit_application)
-        )
-
-        self.icon = pystray.Icon("lexi_app", image, "Lexi App", menu)
-        self.icon.run_detached() # Run the icon in a separate thread
+            self.icon = pystray.Icon("lexi_app", image, "Lexi App", menu)
+            self.icon.run_detached() # Run the icon in a separate thread
+        except Exception as e:
+            print(f"Warning: Could not create system tray icon: {e}")
+            print("This is expected in headless environments like WSL or some Linux setups")
+            print("Application will continue without system tray functionality")
+            self.icon = None
 
         # Handle double-click (pystray doesn't have a direct double-click event,
         # but we can simulate it or rely on the menu for show/hide)
         # For simplicity, we'll rely on the menu item for now.
         # A more advanced implementation might involve platform-specific hooks.
 
-    def toggle_window_visibility(self, icon, item):
+    def toggle_window_visibility(self, icon=None, item=None):
+        """Toggle window visibility, works with or without system tray."""
         if self.is_window_visible:
             self.hide_window()
         else:
@@ -40,37 +59,40 @@ class TrayManager:
 
     def show_window(self):
         """Show the main application window."""
+        if not hasattr(self, 'icon') or self.icon is None:
+            # No system tray, just show the window directly
+            self.window.deiconify()
+            self.window.lift()
+            self.window.focus_force()
+            self.is_window_visible = True
+            return
 
-        # TODO: The window doesn't get focus in case it was visible on the background.
-        # The trick with withdrawing and deiconifying the window does not work as expected.
-
+        # Original logic for when system tray is available
         if self.is_window_visible:
-            self.window.withdraw()  # Temporarily hide the window.
+            self.window.withdraw()
             self.is_window_visible = False
-            self.window.after(200, self.show_window)  # Delay to ensure the window is hidden before showing it again.
+            self.window.after(200, self.show_window)
             return
         
-        self.window.deiconify() # Show the window
-        self.window.lift() # Bring window to front
-        self.window.attributes('-topmost', True) # Bring window to front and give focus
-        self.window.focus_force() # Explicitly request focus
-
-        # self.window.attributes('-topmost', False) # Revert topmost attribute
-        # Schedule the reversion of topmost after a short delay (e.g., 100ms)
-        # This gives the window manager time to handle the focus before the state changes.
+        self.window.deiconify()
+        self.window.lift()
+        self.window.attributes('-topmost', True)
+        self.window.focus_force()
         self.window.after(100, lambda: self.window.attributes('-topmost', 0))
-        
         self.is_window_visible = True
 
     def hide_window(self):
         """Hide the main application window."""
-        self.window.withdraw() # Hide the window
+        self.window.withdraw()
         self.is_window_visible = False
 
-    def exit_application(self, icon, item):
-        icon.stop()
-        self.window.after(0, self.window.destroy) # Schedule window destruction on the main thread
+    def exit_application(self, icon=None, item=None):
+        """Exit the application, works with or without system tray."""
+        if hasattr(self, 'icon') and self.icon:
+            self.icon.stop()
+        self.window.after(0, self.window.destroy)
 
     def stop_icon(self):
-        if self.icon:
+        """Stop the system tray icon if it exists."""
+        if hasattr(self, 'icon') and self.icon:
             self.icon.stop()
