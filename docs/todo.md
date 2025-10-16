@@ -3,7 +3,7 @@
 ## Features
 
 - [ ] Add Ollama as possible LLM provider
-- [ ] Make the app work on Linux
+- [x] Make the app work on Linux
 - [ ] Make the app work on MacOS
 
 ## Interface
@@ -23,3 +23,8 @@
 ## Settings
 
 - [ ] Read available model names from Genimi API and use a current flash light model
+
+## Bugfixes
+
+- [ ] When the window popups after double Ctrl+C, the previous mode is ignored and default translate mode is used.
+- [ ] After some time, the output widget stops coping text to the clipboard by Ctrl+C.
